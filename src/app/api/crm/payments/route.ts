@@ -8,6 +8,10 @@ function genPaymentId() {
 }
 
 // GET /api/crm/payments?mine=1&plotId=&customerId=&limit=20
+//
+// Reads `payment_submissions` — recordings awaiting (or having had) an admin
+// decision. The `payments` ledger is deliberately NOT read here, so a pending
+// recording can never be mistaken for received money.
 export async function GET(req: NextRequest) {
   try {
     const staff = await getStaffFromCrmRequest(req as unknown as Request);
@@ -19,7 +23,7 @@ export async function GET(req: NextRequest) {
     const customerId = req.nextUrl.searchParams.get("customerId");
     const limit = Math.min(parseInt(req.nextUrl.searchParams.get("limit") ?? "20", 10) || 20, 100);
 
-    let query = sb.from("payments").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(limit);
+    let query = sb.from("payment_submissions").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(limit);
 
     if (mine === "1" || mine === "true") {
       query = query.eq("recorded_by", staff.id);
@@ -164,7 +168,7 @@ export async function POST(req: NextRequest) {
       proof_urls: proofUrls,
     };
 
-    const { error: insErr } = await sb.from("payments").insert(insertRow);
+    const { error: insErr } = await sb.from("payment_submissions").insert(insertRow);
     if (insErr) throw insErr;
 
     // Log activity

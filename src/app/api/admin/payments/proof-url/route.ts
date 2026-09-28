@@ -26,9 +26,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid path." }, { status: 400 });
   }
 
-  // The path must sit on some recorded payment.
+  // The path must sit on some submission. A pending recording is not in the
+  // `payments` ledger yet, but the approver still needs to see its proofs, so
+  // authorisation is checked against `payment_submissions`.
   const { data: linked } = await sb
-    .from("payments")
+    .from("payment_submissions")
     .select("id")
     .contains("proof_urls", [path])
     .limit(1);

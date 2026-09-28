@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { requireAdminSession } from "@/lib/attendance/staff-auth";
 import { getPaymentsSupabase } from "@/lib/agent/payments-supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+
+function randomSuffix() {
+  return randomUUID().slice(0, 4);
+}
 
 // /api/admin/payments — the approval queue.
 //
@@ -31,7 +36,7 @@ async function loadDetail(
   id: string,
 ) {
   const { data: payment, error } = await sb
-    .from("payments")
+    .from("payment_submissions")
     .select("*")
     .eq("id", id)
     .maybeSingle();
@@ -203,7 +208,7 @@ export async function GET(req: NextRequest) {
   // Badge-only request: exact head count, no rows.
   if (req.nextUrl.searchParams.get("countOnly")) {
     const { count, error } = await sb
-      .from("payments")
+      .from("payment_submissions")
       .select("id", { count: "exact", head: true })
       .eq("status", status);
     if (error) {
@@ -215,7 +220,11 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  let query = sb.from("payments").select("*").order("created_at", { ascending: false }).limit(200);
+  let query = sb
+    .from("payment_submissions")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200);
   if (status !== "all") query = query.eq("status", status);
 
   const { data, error } = await query;
@@ -299,40 +308,131 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "A reason is required to reject." }, { status: 400 });
   }
 
-  // Optimistic guard: only a still-pending payment can be decided, so two
+  // Optimistic guard: only a still-pending submission can be decided, so two
   // admins cannot both approve and double-count the same recording.
+  //
+  // APPROVE is the only path that writes the `payments` ledger, and therefore
+  // the only path that makes money real. The submission row is kept either way
+  // so the audit trail survives a rejection.
   const now = new Date().toISOString();
-  const patch =
-    decision === "approve"
-      ? {
-          status: "approved",
-          approved_at: now,
-          approved_by: gate.employee.id,
-          rejection_remark: null,
-        }
-      : {
-          status: "rejected",
-          rejection_remark: remark,
-          approved_at: null,
-          approved_by: gate.employee.id,
-        };
 
-  const { data, error } = await sb
-    .from("payments")
-    .update(patch)
+  if (decision === "reject") {
+    const { data, error } = await sb
+      .from("payment_submissions")
+      .update({
+        status: "rejected",
+        rejection_remark: remark,
+        approved_at: null,
+        approved_by: gate.employee.id,
+      })
+      .eq("id", id)
+      .eq("status", "pending")
+      .select("id, status");
+
+    if (error) {
+      return NextResponse.json({ error: "Could not update payment." }, { status: 500 });
+    }
+    if (!data || data.length === 0) {
+      return NextResponse.json(
+        { error: "That payment is no longer pending." },
+        { status: 409 },
+      );
+    }
+    return NextResponse.json({ item: data[0] });
+  }
+
+  // --- approve -------------------------------------------------------------
+  // Promote the submission into the ledger. Order matters: insert first, then
+  // flip the submission, so a crash between the two leaves an approved ledger
+  // row and a still-pending submission. The flip is guarded on `status =
+  // 'pending'`, so the replay below is a no-op and no duplicate ledger row is
+  // created.
+  const { data: sub, error: subErr } = await sb
+    .from("payment_submissions")
+    .select("*")
     .eq("id", id)
     .eq("status", "pending")
-    .select("id, status");
+    .maybeSingle();
 
-  if (error) {
-    return NextResponse.json({ error: "Could not update payment." }, { status: 500 });
+  if (subErr) {
+    return NextResponse.json({ error: "Could not load payment." }, { status: 500 });
   }
-  if (!data || data.length === 0) {
+  if (!sub) {
     return NextResponse.json(
       { error: "That payment is no longer pending." },
       { status: 409 },
     );
   }
 
-  return NextResponse.json({ item: data[0] });
+  const s = sub as Record<string, unknown>;
+  const paymentId = `pay-${Date.now().toString(36)}-${randomSuffix()}`;
+
+  const ledgerRow = {
+    id: paymentId,
+    plot_id: s.plot_id ?? null,
+    customer_id: s.customer_id ?? null,
+    booking_id: s.booking_id ?? null,
+    sale_id: s.sale_id ?? null,
+    date: s.date,
+    amount: s.amount,
+    payment_mode: s.payment_mode ?? null,
+    reference_number: s.reference_number ?? null,
+    bank: s.bank ?? null,
+    cheque_number: s.cheque_number ?? null,
+    transaction_id: s.transaction_id ?? null,
+    remarks: s.remarks ?? null,
+    status: "approved",
+    approved_at: now,
+    approved_by: gate.employee.id,
+    recorded_by: s.recorded_by ?? null,
+    recorded_by_name: s.recorded_by_name ?? null,
+    proof_urls: Array.isArray(s.proof_urls) ? s.proof_urls : [],
+    created_at: s.created_at ?? now,
+  };
+
+  // If a previous attempt already promoted this submission, reuse that row
+  // rather than inserting a second one.
+  const existingPaymentId = s.payment_id as string | null;
+  if (existingPaymentId) {
+    const { data: flipped } = await sb
+      .from("payment_submissions")
+      .update({ status: "approved", approved_at: now, approved_by: gate.employee.id })
+      .eq("id", id)
+      .eq("status", "pending")
+      .select("id, status, payment_id");
+    return NextResponse.json({ item: flipped?.[0] ?? { id, status: "approved" } });
+  }
+
+  const { error: insErr } = await sb.from("payments").insert(ledgerRow);
+  if (insErr) {
+    return NextResponse.json({ error: "Could not approve payment." }, { status: 500 });
+  }
+
+  const { data: flipped, error: flipErr } = await sb
+    .from("payment_submissions")
+    .update({
+      status: "approved",
+      approved_at: now,
+      approved_by: gate.employee.id,
+      rejection_remark: null,
+      payment_id: paymentId,
+    })
+    .eq("id", id)
+    .eq("status", "pending")
+    .select("id, status, payment_id");
+
+  if (flipErr) {
+    // The ledger row is in but the submission is still pending. Report it
+    // plainly rather than pretending the approval failed — re-approving
+    // reuses payment_id above, so this is safe to recover from.
+    return NextResponse.json(
+      {
+        error: "Payment was added to the ledger but the queue was not updated.",
+        item: { id, status: "approved", payment_id: paymentId },
+      },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ item: flipped?.[0] ?? { id, status: "approved", payment_id: paymentId } });
 }

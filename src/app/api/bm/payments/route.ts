@@ -12,6 +12,9 @@ const RECORDABLE = ["booked", "reserved", "sold"];
 // with plot + customer labels for display. The amount is deliberately NOT
 // returned: the BM typed it in, and the figure is only ever read on the
 // admin approval screen.
+//
+// Reads `payment_submissions`, not `payments`: a recording is not money until
+// an admin approves it, and the ledger is only written on approval.
 export async function GET(req: NextRequest) {
   const gate = await requireBranchManager(req);
   if (!gate.authorized) return gate.response;
@@ -22,7 +25,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { data, error } = await sb
-    .from("payments")
+    .from("payment_submissions")
     .select("*")
     .eq("recorded_by", gate.employee.id)
     .order("created_at", { ascending: false })
@@ -61,7 +64,7 @@ export async function GET(req: NextRequest) {
     chequeNumber: r.cheque_number ?? null,
     transactionId: r.transaction_id ?? null,
     remarks: r.remarks ?? null,
-    status: r.status ?? "approved",
+    status: r.status ?? "pending",
     rejectionRemark: r.rejection_remark ?? null,
     approvedAt: r.approved_at ?? null,
     proofCount: Array.isArray(r.proof_urls) ? r.proof_urls.length : 0,
@@ -78,8 +81,10 @@ export async function GET(req: NextRequest) {
   );
 }
 
-// POST /api/bm/payments — record a payment. ALWAYS enters as `pending` with
-// the BM stamped as recorder. Admin approval (website) moves money.
+// POST /api/bm/payments — record a payment. ALWAYS enters `payment_submissions`
+// as `pending` with the BM stamped as recorder. Nothing touches the `payments`
+// ledger here: admin approval is what writes money, so a recording is invisible
+// to every balance until an admin decides on it.
 export async function POST(req: NextRequest) {
   const gate = await requireBranchManager(req);
   if (!gate.authorized) return gate.response;
@@ -148,7 +153,7 @@ export async function POST(req: NextRequest) {
     created_at: new Date().toISOString(),
   };
 
-  const { error } = await sb.from("payments").insert(row);
+  const { error } = await sb.from("payment_submissions").insert(row);
   if (error) {
     return NextResponse.json({ error: "Could not record payment." }, { status: 500 });
   }

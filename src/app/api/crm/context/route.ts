@@ -63,20 +63,36 @@ export async function GET(req: NextRequest) {
       // attach all customer plots for picker
     }
 
-    // Payment summary for this plot/customer
+    // Payment summary for this plot/customer.
+    //
+    // `payments` is the ledger and now only ever holds approved money, so the
+    // pending/rejected figures come from `payment_submissions` instead.
     let payments: any[] = [];
+    let submissions: any[] = [];
     if (plot?.id || customer?.id) {
-      let q = sb.from("payments").select("id, amount, status, date, payment_mode, created_at").order("date", { ascending: false }).limit(50);
-      if (plot?.id && customer?.id) q = q.or(`plot_id.eq.${plot.id},customer_id.eq.${customer.id}`);
-      else if (plot?.id) q = q.eq("plot_id", plot.id);
-      else if (customer?.id) q = q.eq("customer_id", customer.id);
-      const { data: payData } = await q;
-      payments = payData ?? [];
+      const scope = (q: any) => {
+        let scoped = q.select("id, amount, status, date, payment_mode, created_at").order("date", { ascending: false }).limit(50);
+        if (plot?.id && customer?.id) scoped = scoped.or(`plot_id.eq.${plot.id},customer_id.eq.${customer.id}`);
+        else if (plot?.id) scoped = scoped.eq("plot_id", plot.id);
+        else if (customer?.id) scoped = scoped.eq("customer_id", customer.id);
+        return scoped;
+      };
+
+      const [ledgerRes, subRes] = await Promise.all([
+        scope(sb.from("payments")),
+        scope(sb.from("payment_submissions")),
+      ]);
+      payments = ledgerRes.data ?? [];
+      submissions = subRes.data ?? [];
     }
 
-    const totalApproved = payments.filter((p: any) => p.status === "approved").reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
-    const totalPending = payments.filter((p: any) => p.status === "pending").reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
-    const totalRejected = payments.filter((p: any) => p.status === "rejected").reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
+    const totalApproved = payments.reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
+    const totalPending = submissions
+      .filter((p: any) => p.status === "pending")
+      .reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
+    const totalRejected = submissions
+      .filter((p: any) => p.status === "rejected")
+      .reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0);
 
     // Also fetch all plots for this customer for selector
     let customerPlots: any[] = [];

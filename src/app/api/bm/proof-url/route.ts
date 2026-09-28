@@ -24,9 +24,9 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Invalid path." }, { status: 400 });
   }
 
-  // Ownership check: the path must sit on one of this BM's payments.
+  // Ownership check: the path must sit on one of this BM's submissions.
   const { data: own } = await sb
-    .from("payments")
+    .from("payment_submissions")
     .select("id")
     .eq("recorded_by", gate.employee.id)
     .contains("proof_urls", [path])
