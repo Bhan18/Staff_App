@@ -32,7 +32,7 @@ export const GET = withAttendanceErrorHandler(
     if (error) throw new Error(error.message);
 
     const checkedInNow = (open ?? []).map((r) => {
-      const emp = r.attendance_employees as {
+      const emp = r.attendance_employees as unknown as {
         id: string;
         employee_code: string;
         name: string;

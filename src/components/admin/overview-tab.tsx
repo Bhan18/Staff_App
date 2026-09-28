@@ -155,7 +155,10 @@ export function OverviewTab() {
             Nobody has checked in yet today.
           </div>
         ) : (
-          <ul className="divide-y" style={{ divideColor: "color-mix(in srgb, var(--brand-emerald) 8%, transparent)" }}>
+          <ul
+            className="divide-y"
+            style={{ borderColor: "color-mix(in srgb, var(--brand-emerald) 8%, transparent)" }}
+          >
             {data.checkedInNow.map((p) => (
               <li key={p.employeeId} className="flex items-center gap-3 px-4 py-3">
                 {p.checkInPhoto ? (

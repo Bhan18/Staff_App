@@ -71,7 +71,7 @@ export const POST = withAttendanceErrorHandler(
               body.perDayRateOverride != null && body.perDayRateOverride !== ""
                 ? num(body.perDayRateOverride)
                 : null,
-            notes: body.notes ? String(body.notes) : null,
+            notes: body.notes ? String(body.notes) : undefined,
           },
           ctx,
         );

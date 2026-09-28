@@ -48,7 +48,7 @@ export function useAttendanceLog(days = 365) {
       });
       const data = await jsonOrThrow(res);
       const items: MappedRecord[] = Array.isArray(data?.items) ? data.items : [];
-      return items
+      const mapped = items
         .filter(
           (r) =>
             r.checkInTime ||
@@ -64,6 +64,7 @@ export function useAttendanceLog(days = 365) {
           workingMinutes: r.workingMinutes,
           status: r.status as AttendanceLogEntry["status"],
         }));
+      return mapped as AttendanceLogEntry[];
     },
     staleTime: 30_000,
     retry: 1,
@@ -194,12 +195,8 @@ export function useUpdateLead() {
   });
 }
 
-<<<<<<< HEAD
-export function useAddLeadActivity() {  const qc = useQueryClient();
-=======
 export function useAddLeadActivity() {
   const qc = useQueryClient();
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
   return useMutation<LeadActivity, Error, { id: string; type: LeadActivityType; content: string }>({
     mutationFn: async ({ id, type, content }) => {
       const res = await fetch(`/api/attendance/staff/leads/${id}`, {
@@ -259,7 +256,6 @@ export function useSubmitAttendance() {
     },
   });
 }
-<<<<<<< HEAD
 
 // ─── Branch-manager payments (main project, pending until approved) ─────
 
@@ -554,5 +550,3 @@ export function useDecideAdminPayment() {
     },
   });
 }
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6

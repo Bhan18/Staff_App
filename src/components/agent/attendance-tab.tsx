@@ -127,7 +127,7 @@ export function AttendanceTab({ onCheckIn, onCheckOut, busy }: AttendanceTabProp
 
           {/* Monthly summary */}
           <section>
-            <MonthlyStats records={history.data ?? []} />
+            <MonthlyStats records={(history.data ?? []) as AttendanceLogEntry[]} />
           </section>
 
           {/* History timeline */}
@@ -137,7 +137,7 @@ export function AttendanceTab({ onCheckIn, onCheckOut, busy }: AttendanceTabProp
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 History
               </h2>
-              {history.data && history.data.length > 0 && (
+              {history.data != null && history.data.length > 0 && (
                 <span className="text-[11px] text-muted-foreground">
                   {history.data.length} records
                 </span>
@@ -154,7 +154,7 @@ export function AttendanceTab({ onCheckIn, onCheckOut, busy }: AttendanceTabProp
                 description="Your check-ins will appear here once you start marking attendance."
               />
             ) : (
-              <HistoryTimeline records={history.data} />
+              <HistoryTimeline records={history.data as AttendanceLogEntry[]} />
             )}
           </section>
         </>

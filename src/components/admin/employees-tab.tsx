@@ -216,7 +216,6 @@ export function EmployeesTab() {
                           Admin
                         </span>
                       )}
-<<<<<<< HEAD
                       {e.role === "BRANCH_MANAGER" && (
                         <span
                           className="shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase"
@@ -225,8 +224,6 @@ export function EmployeesTab() {
                           BM
                         </span>
                       )}
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
                       {e.status !== "ACTIVE" && (
                         <span className="shrink-0 rounded-full bg-black/5 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-black/50">
                           Inactive
@@ -320,11 +317,8 @@ export function EmployeesTab() {
   );
 }
 
-<<<<<<< HEAD
-=======
 const PRESET_ROLES = ["Staff", "ADMIN", "BRANCH_MANAGER"] as const;
 
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 function EmployeeForm({
   title,
   employee,
@@ -343,16 +337,10 @@ function EmployeeForm({
   const [name, setName] = useState(employee?.name ?? "");
   const [phone, setPhone] = useState(employee?.phone ?? "");
   const [department, setDepartment] = useState(employee?.department ?? "");
-<<<<<<< HEAD
-  const [jobRole, setJobRole] = useState(employee && employee.role !== "ADMIN" && employee.role !== "BRANCH_MANAGER" ? employee.role : "");
-  const [isAdmin, setIsAdmin] = useState(employee?.role === "ADMIN");
-  const [isBm, setIsBm] = useState(employee?.role === "BRANCH_MANAGER");
-=======
   // Unified role state: preset or custom. Replaces old isAdmin+jobRole split which required typing BRANCH_MANAGER manually.
   const initialIsPreset = !employee || (["Staff", "ADMIN", "BRANCH_MANAGER"] as string[]).includes(employee.role);
   const [rolePreset, setRolePreset] = useState<string>(employee?.role && (["Staff", "ADMIN", "BRANCH_MANAGER"] as string[]).includes(employee.role) ? employee.role : (employee?.role ? "__custom" : "Staff"));
   const [customRole, setCustomRole] = useState<string>(employee && !initialIsPreset ? employee.role : "");
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
   const [password, setPassword] = useState("");
   const [photo, setPhoto] = useState<string | null>(employee?.profilePhoto ?? null);
   const [busy, setBusy] = useState(false);
@@ -372,16 +360,12 @@ function EmployeeForm({
     }
     setBusy(true);
     try {
-<<<<<<< HEAD
-      const role = isAdmin ? "ADMIN" : isBm ? "BRANCH_MANAGER" : jobRole.trim() || "Staff";
-=======
       const role = rolePreset === "__custom" ? (customRole.trim() || "Staff") : rolePreset;
       if (isSelf && employee?.role === "ADMIN" && role !== "ADMIN") {
         setError("You cannot remove your own admin access.");
         setBusy(false);
         return;
       }
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
       const res = await fetch("/api/attendance/admin/employees", {
         method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
@@ -468,35 +452,6 @@ function EmployeeForm({
             <input value={department} onChange={(e) => setDepartment(e.target.value)} placeholder="Construction" className={inputCls} />
           </Field>
           <Field label="Job role">
-<<<<<<< HEAD
-            <input value={jobRole} onChange={(e) => setJobRole(e.target.value)} placeholder="Site Engineer" disabled={isAdmin || isBm} className={`${inputCls} disabled:opacity-50`} />
-          </Field>
-        </div>
-
-        <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs font-medium">
-          <input
-            type="checkbox"
-            checked={isAdmin}
-            disabled={isSelf}
-            onChange={(e) => { setIsAdmin(e.target.checked); if (e.target.checked) setIsBm(false); }}
-            className="h-4 w-4 accent-[var(--brand-emerald)]"
-          />
-          Administrator access (full dashboard)
-          {isSelf && <span className="font-normal text-[var(--brand-ink)]/45">(your own access can't be removed)</span>}
-        </label>
-
-        <label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-medium">
-          <input
-            type="checkbox"
-            checked={isBm}
-            disabled={isSelf}
-            onChange={(e) => { setIsBm(e.target.checked); if (e.target.checked) setIsAdmin(false); }}
-            className="h-4 w-4 accent-[#7c3aed]"
-          />
-          Branch Manager (payments tab in staff app)
-          {isSelf && <span className="font-normal text-[var(--brand-ink)]/45">(your own role can't be changed)</span>}
-        </label>
-=======
             <input value={customRole} onChange={(e) => setCustomRole(e.target.value)} placeholder="Site Engineer" className={inputCls} style={{ display: rolePreset === "__custom" ? undefined : "none" }} />
             <select
               value={rolePreset}
@@ -521,7 +476,6 @@ function EmployeeForm({
         {isSelf && employee?.role === "ADMIN" && (
           <p className="mt-1 text-xs text-[var(--brand-ink)]/45">Your own admin access can't be removed.</p>
         )}
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 
         <div className="mt-3">
           <Field label={isEdit ? "New password (blank = keep current)" : "Password (optional)"}>

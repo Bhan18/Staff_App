@@ -17,23 +17,14 @@ import { HomeTab } from "@/components/agent/home-tab";
 import { ContentTab } from "@/components/agent/content-tab";
 import { AttendanceTab } from "@/components/agent/attendance-tab";
 import { LeadsTab } from "@/components/agent/leads-tab";
-<<<<<<< HEAD
 import { BmPaymentsTab } from "@/components/agent/bm-payments-tab";
 import { ProfileTab } from "@/components/agent/profile-tab";
-=======
-import { ProfileTab } from "@/components/agent/profile-tab";
-import { PaymentsTab } from "@/components/agent/payments-tab";
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 import { CameraCapture } from "@/components/agent/camera-capture";
 import { AdminDashboard } from "@/components/admin/admin-dashboard";
 import { useAgentAuth } from "@/hooks/agent/use-agent-auth";
 import { useAgentNav } from "@/hooks/agent/use-agent-nav";
 import { useSubmitAttendance, type AttendanceSubmitResult } from "@/hooks/agent/use-agent-data";
-<<<<<<< HEAD
 import type { AgentSession } from "@/lib/agent/types";
-=======
-import type { AgentSession, AgentTab } from "@/lib/agent/types";
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 import { isOutsideWindow } from "@/lib/attendance/window";
 
 type CaptureState =
@@ -63,27 +54,10 @@ function isMarkOutsideWindow(
 
 export default function AgentPage() {
   const { session, loading, refreshSession } = useAgentAuth();
-<<<<<<< HEAD
   const { tab, visited, setTab } = useAgentNav();
   const submit = useSubmitAttendance();
   const [capture, setCapture] = useState<CaptureState>({ open: false });
   const [reasonRequired, setReasonRequired] = useState(false);
-=======
-  const { tab, setTab: setTabState } = useAgentNav();
-  const submit = useSubmitAttendance();
-  const [capture, setCapture] = useState<CaptureState>({ open: false });
-  const [reasonRequired, setReasonRequired] = useState(false);
-  // Staff tabs mount lazily on first visit, then STAY mounted (hidden) so
-  // switching back is instant — cached data, no skeletons, state kept.
-  const [visited, setVisited] = useState<Set<AgentTab>>(() => new Set(["home"]));
-  const setTab = useCallback(
-    (t: AgentTab) => {
-      setVisited((prev) => (prev.has(t) ? prev : new Set(prev).add(t)));
-      setTabState(t);
-    },
-    [setTabState],
-  );
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 
   // Lock body scroll while camera is open.
   useEffect(() => {
@@ -213,11 +187,7 @@ export default function AgentPage() {
     <div className="agent-shell flex min-h-dynamic flex-col">
       <TopBar />
       <main className="agent-frame flex-1">
-<<<<<<< HEAD
         {visited.includes("home") && (
-=======
-        {visited.has("home") && (
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
           <div hidden={tab !== "home"}>
             <HomeTab
               onCheckIn={() => startCapture("CHECK_IN")}
@@ -225,17 +195,10 @@ export default function AgentPage() {
             />
           </div>
         )}
-<<<<<<< HEAD
         {visited.includes("content") && (
           <div hidden={tab !== "content"}><ContentTab /></div>
         )}
         {visited.includes("attendance") && (
-=======
-        {visited.has("content") && (
-          <div hidden={tab !== "content"}><ContentTab /></div>
-        )}
-        {visited.has("attendance") && (
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
           <div hidden={tab !== "attendance"}>
             <AttendanceTab
               onCheckIn={() => startCapture("CHECK_IN")}
@@ -244,7 +207,6 @@ export default function AgentPage() {
             />
           </div>
         )}
-<<<<<<< HEAD
         {visited.includes("leads") && (
           <div hidden={tab !== "leads"}><LeadsTab /></div>
         )}
@@ -252,15 +214,6 @@ export default function AgentPage() {
           <div hidden={tab !== "payments"}><BmPaymentsTab /></div>
         )}
         {visited.includes("profile") && (
-=======
-        {visited.has("leads") && (
-          <div hidden={tab !== "leads"}><LeadsTab /></div>
-        )}
-        {visited.has("payments") && (
-          <div hidden={tab !== "payments"}><PaymentsTab /></div>
-        )}
-        {visited.has("profile") && (
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
           <div hidden={tab !== "profile"}><ProfileTab /></div>
         )}
       </main>

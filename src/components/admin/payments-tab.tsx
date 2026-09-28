@@ -8,7 +8,7 @@
 // This screen is the ONLY place a payment amount is rendered. It is not
 // shown to branch managers anywhere in their own app.
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   IndianRupee,
   CheckCircle2,
@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   Wallet,
   ImageIcon,
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -546,7 +547,7 @@ function DetailBody({ detail }: { detail: AdminPaymentDetail }) {
   );
 }
 
-function MiniChip({ children }: { children: React.ReactNode }) {
+function MiniChip({ children }: { children: ReactNode }) {
   return (
     <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-medium text-white/90">
       {children}
@@ -561,7 +562,7 @@ function Row({
 }: {
   label: string;
   value?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <div className="flex items-start justify-between gap-3 px-3 py-2.5">

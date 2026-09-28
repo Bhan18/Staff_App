@@ -15,10 +15,7 @@ import {
   Settings,
   Target,
   Newspaper,
-<<<<<<< HEAD
   IndianRupee,
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 } from "lucide-react";
 import { useAgentAuth } from "@/hooks/agent/use-agent-auth";
 import { useBranding } from "@/hooks/agent/use-branding";
@@ -31,24 +28,16 @@ import { LeavesTab } from "./leaves-tab";
 import { LeadsAdminTab } from "./leads-tab";
 import { ContentAdminTab } from "./content-tab";
 import { SettingsTab } from "./settings-tab";
-<<<<<<< HEAD
 import { PaymentsTab } from "./payments-tab";
 
 type AdminTab = "overview" | "attendance" | "leaves" | "salary" | "employees" | "leads" | "payments" | "content" | "settings";
-=======
-
-type AdminTab = "overview" | "attendance" | "leaves" | "salary" | "employees" | "leads" | "content" | "settings";
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
 
 const TABS: { id: AdminTab; label: string; icon: typeof LayoutDashboard }[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "attendance", label: "Attendance", icon: CalendarCheck2 },
   { id: "leaves", label: "Leaves", icon: CalendarOff },
   { id: "salary", label: "Salary", icon: Banknote },
-<<<<<<< HEAD
   { id: "payments", label: "Payments", icon: IndianRupee },
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
   { id: "employees", label: "Employees", icon: Users },
   { id: "leads", label: "Leads", icon: Target },
   { id: "content", label: "Content", icon: Newspaper },
@@ -72,7 +61,6 @@ export function AdminDashboard() {
   return (
     <div className="agent-shell flex min-h-dynamic flex-col">
       <header
-<<<<<<< HEAD
         className="sticky top-0 z-20 px-4 pb-3 pt-3 backdrop-blur-xl safe-pt"
         style={{
           background:
@@ -119,50 +107,10 @@ export function AdminDashboard() {
               <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
-=======
-        className="sticky top-0 z-20 flex items-center justify-between border-b bg-white/90 px-4 py-3 backdrop-blur safe-pt"
-        style={{
-          borderColor: "color-mix(in srgb, var(--brand-emerald) 10%, #e5e0d4)",
-        }}
-      >
-        <div className="flex items-center gap-2.5">
-          <BrandLogo size={30} />
-          <div className="leading-tight">
-            <div className="text-sm font-semibold">Admin</div>
-            <div className="max-w-[180px] truncate text-[10px] text-[var(--brand-ink)]/55">
-              {name}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className="hidden items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium sm:inline-flex"
-            style={{
-              background: "color-mix(in srgb, var(--brand-emerald) 10%, white)",
-              color: "var(--brand-emerald)",
-            }}
-          >
-            <Shield className="h-3 w-3" />
-            {branding.app_name}
-          </span>
-          <button
-            onClick={() => void signOut()}
-            className="agent-press flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium"
-            style={{
-              background: "color-mix(in srgb, var(--brand-checkout) 8%, white)",
-              color: "var(--brand-checkout)",
-              border: "1px solid color-mix(in srgb, var(--brand-checkout) 20%, transparent)",
-            }}
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            Sign out
-          </button>
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
         </div>
       </header>
 
       <nav
-<<<<<<< HEAD
         className="no-scrollbar sticky top-[61px] z-10 px-4 py-2.5 backdrop-blur-xl"
         style={{
           background: "color-mix(in srgb, var(--brand-paper) 78%, transparent)",
@@ -201,36 +149,6 @@ export function AdminDashboard() {
 
       <main className="agent-frame flex-1 px-4 pb-10 pt-5">
         <div className="mx-auto w-full max-w-5xl">
-=======
-        className="no-scrollbar sticky top-[64px] z-10 flex gap-1 overflow-x-auto border-b bg-white/80 px-3 py-2 backdrop-blur"
-        style={{ borderColor: "color-mix(in srgb, var(--brand-emerald) 10%, #e5e0d4)" }}
-      >
-        {TABS.map((t) => {
-          const active = tab === t.id;
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              className="agent-press flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium"
-              style={
-                active
-                  ? {
-                      background: "color-mix(in srgb, var(--brand-emerald) 12%, white)",
-                      color: "var(--brand-emerald)",
-                    }
-                  : { color: "var(--brand-ink)/60" }
-              }
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {t.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      <main className="agent-frame flex-1 px-4 pb-8 pt-4">
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
         {visited.has("overview") && (
           <div hidden={tab !== "overview"}><OverviewTab /></div>
         )}
@@ -249,22 +167,16 @@ export function AdminDashboard() {
         {visited.has("leads") && (
           <div hidden={tab !== "leads"}><LeadsAdminTab /></div>
         )}
-<<<<<<< HEAD
         {visited.has("payments") && (
           <div hidden={tab !== "payments"}><PaymentsTab /></div>
         )}
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
         {visited.has("content") && (
           <div hidden={tab !== "content"}><ContentAdminTab /></div>
         )}
         {visited.has("settings") && (
           <div hidden={tab !== "settings"}><SettingsTab /></div>
         )}
-<<<<<<< HEAD
         </div>
-=======
->>>>>>> b5863bd91c6df220ccc66682e8ec1aff705e97b6
       </main>
     </div>
   );
